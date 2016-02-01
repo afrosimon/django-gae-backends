@@ -2,6 +2,7 @@
   Django Cache Backend for the Google App Engine
 """
 import time
+import logging
 
 from django.core.cache.backends.base import BaseCache
 
@@ -71,7 +72,11 @@ class MemcacheCache(BaseCache):
         key = self.make_key(key, version=version)
         self.validate_key(key)
 
-        memcache.set(key, value, self._get_memcache_timeout(timeout))
+        # there might be an exception if the pickled data is bigger than 1mb
+        try:
+            memcache.set(key, value, self._get_memcache_timeout(timeout))
+        except:
+            logging.warning('Could not save response in memcache - too large')
 
     def delete(self, key, version=None):
         key = self.make_key(key, version=version)
